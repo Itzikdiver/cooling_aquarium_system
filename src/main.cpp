@@ -5,10 +5,11 @@
 #include <DallasTemperature.h>
 
 // === Hardware Pin Definitions ===
-#define FAN_PIN 3
-#define PUMP_PIN 4
-#define FLOAT_SWITCH_PIN 5
-#define SENSOR_PIN 9
+#define FAN_PIN 15
+#define PUMP_PIN 2
+#define FLOAT_1_SWITCH_PIN 7
+#define FLOAT_2_SWITCH_PIN 9
+#define SENSOR_PIN 8
 
 // === Temperature Thresholds ===
 const float TEMP_ON_THRESHOLD = 26.0;
@@ -40,16 +41,26 @@ void handlePump();
 void updateDisplay();
 
 void setup() {
+  // === Initialize GPIOs ===
   pinMode(FAN_PIN, OUTPUT);
   pinMode(PUMP_PIN, OUTPUT);
-  pinMode(FLOAT_SWITCH_PIN, INPUT_PULLUP);
-  digitalWrite(FAN_PIN, LOW);
-  digitalWrite(PUMP_PIN, LOW);
+  pinMode(FLOAT_1_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(FLOAT_2_SWITCH_PIN, INPUT_PULLUP);
 
+  digitalWrite(FAN_PIN, LOW);   // Ensure fan is off
+  digitalWrite(PUMP_PIN, LOW);  // Ensure pump is off
+
+  // === Start Serial Communication ===
   Serial.begin(9600);
+  while (!Serial);  // Optional: Wait for serial (useful during debug)
+
+  // === Initialize Temperature Sensor ===
   tempSensor.begin();
 
-  // Initialize Display
+  // === Set I2C Pins and Begin I2C Bus ===
+  Wire.begin(); // SDA, SCL pins for Raspberry Pi Pico
+
+  // === Initialize OLED Display ===
   if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     displayAvailable = true;
     display.clearDisplay();
@@ -99,7 +110,7 @@ void handlePump() {
     return;
   }
 
-  bool floatSwitchTriggered = digitalRead(FLOAT_SWITCH_PIN) == LOW;
+  bool floatSwitchTriggered = (digitalRead(FLOAT_1_SWITCH_PIN) == LOW && digitalRead(FLOAT_2_SWITCH_PIN) == LOW);
 
   if (floatSwitchTriggered) {
     if (!pumpOn) {
