@@ -52,7 +52,7 @@ void setup() {
 
   // === Start Serial Communication ===
   Serial.begin(9600);
-  while (!Serial);  // Optional: Wait for serial (useful during debug)
+  // while (!Serial);  // Optional: Wait for serial (useful during debug)
 
   // === Initialize Temperature Sensor ===
   tempSensor.begin();
